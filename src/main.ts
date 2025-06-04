@@ -54,12 +54,17 @@ type Actress = Person & {
 // Utilizza un type guard chiamato isActress per assicurarti che la struttura del dato ricevuto sia corretta.
 
 function isActress(dati: unknown): dati is Actress {
+
+  if (typeof dati !== 'object' || dati === null) return false;
+
+  const obj = dati as any;
+
   return (
     typeof dati === 'object' && dati !== null &&
     "id" in dati && typeof dati.id === 'number' && // id propriety
     "name" in dati && typeof dati.name === 'string' &&
     "birth_year" in dati && typeof dati.birth_year === 'number' &&
-    "death_year" in dati && typeof dati.death_year === 'number' &&
+    (obj.death_year === undefined || typeof obj.death_year === 'number') &&
     "biography" in dati && typeof dati.biography === 'string' &&
     "image" in dati && typeof dati.image === 'string' &&
     "most_famous_movies" in dati &&
@@ -73,7 +78,7 @@ function isActress(dati: unknown): dati is Actress {
 
 async function getActress(id: number): Promise<Actress | null> {
   try {
-    const response = await fetch(`http://localhost:3333/actresses${id}`);
+    const response = await fetch(`http://localhost:3333/actresses/${id}`);
     const dati: unknown = await response.json();
     if (!isActress(dati)) {
       throw new Error('Formato dati non valido')
@@ -139,3 +144,24 @@ async function getActresses(ids: number[]): Promise<(Actress | null)[]> {
     return [];
   }
 }
+
+
+
+
+
+
+
+
+(async () => {
+  console.log("✅ Chiamata getActress(1)");
+  const single = await getActress(1);
+  console.log("Risultato di getActress(1):", single);
+
+  console.log("✅ Chiamata getAllActresses()");
+  const all = await getAllActresses();
+  console.log("Risultato di getAllActresses():", all);
+
+  console.log("✅ Chiamata getActresses([1, 2, 3])");
+  const multiple = await getActresses([1, 2, 3]);
+  console.log("Risultato di getActresses([1, 2, 3]):", multiple);
+})();
